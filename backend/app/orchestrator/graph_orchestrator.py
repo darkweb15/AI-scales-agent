@@ -488,23 +488,23 @@ Notes: {lead.get('notes', '')}
         result = state.get("action_result", {})
         outcome = result.get("outcome", "unknown")
 
-        # Emit real-time event to dashboard
-        self._notification.emit("agent.action_completed", {
+        # Emit real-time event to dashboard via in-process broadcaster
+        from app.core.websocket_broadcaster import broadcast
+        await broadcast("agent.action_completed", {
             "lead_id": state["lead_id"],
             "action": state.get("llm_decision", {}).get("action", "unknown"),
             "outcome": outcome,
             "reasoning": state.get("llm_decision", {}).get("reasoning", ""),
+            "urgency": state.get("llm_decision", {}).get("urgency", "medium"),
         })
 
+        # Also emit KPI update
+        if outcome in ("called", "sent", "demo_email_sent"):
+            metric = "calls_made" if outcome == "called" else "emails_sent"
+            await broadcast("kpi.updated", {"metric": metric, "delta": 1})
+
         state["iteration"] = state.get("iteration", 0) + 1
-
-        # Decide whether to loop (only loop if action succeeded and not terminal)
-        terminal_outcomes = {"escalated", "failed", "skipped", "end"}
-        if outcome in terminal_outcomes or state["iteration"] >= self.MAX_ITERATIONS:
-            state["next_node"] = "end"
-        else:
-            state["next_node"] = "end"  # one action per tick, re-evaluate next poll
-
+        state["next_node"] = "end"
         return state
 
     # ------------------------------------------------------------------
@@ -648,7 +648,7 @@ Notes: {lead.get('notes', '')}
     # ------------------------------------------------------------------
 
     async def _tick(self) -> None:
-        """Poll DB for pending leads and run each through the graph."""
+        """Poll DB for pending leads, score + prioritize, then process top batch."""
         now = datetime.now(timezone.utc)
         async with self._session_factory() as session:
             leads = await self._db.query_leads_pending_action(session, now)
@@ -656,15 +656,34 @@ Notes: {lead.get('notes', '')}
         if not leads:
             return
 
-        # Process max 5 leads per tick to stay within Groq free tier (30 req/min)
-        # Each lead uses ~2 LLM calls, so 5 leads = 10 calls per tick
-        batch = leads[:5]
-        logger.info("🔄 Graph tick: processing %d/%d pending leads", len(batch), len(leads))
+        # Score and prioritize leads — process highest-value first
+        scored_leads = []
+        for lead in leads:
+            try:
+                async with self._session_factory() as session:
+                    interactions = await self._db.get_interactions_for_lead(session, lead.id)
+                from app.core.lead_scorer import get_lead_scorer
+                scorer = get_lead_scorer()
+                score_data = scorer.score_lead(lead, interactions)
+                scored_leads.append((score_data["score"], lead))
+            except Exception:
+                scored_leads.append((50, lead))  # default score
+
+        # Sort by score descending — highest value leads first
+        scored_leads.sort(key=lambda x: x[0], reverse=True)
+
+        # Process max 5 leads per tick (Groq free tier: 30 req/min)
+        batch = [lead for _, lead in scored_leads[:5]]
+        logger.info(
+            "🔄 Graph tick: processing %d/%d leads (top score: %d)",
+            len(batch), len(leads),
+            scored_leads[0][0] if scored_leads else 0,
+        )
 
         for i, lead in enumerate(batch):
             try:
                 await self.process_lead(str(lead.id))
                 if i < len(batch) - 1:
-                    await asyncio.sleep(3)  # 3s between leads → ~20 calls/min, under 30 limit
+                    await asyncio.sleep(3)  # 3s between leads → ~20 calls/min
             except Exception as e:
                 logger.exception("Error processing lead %s: %s", lead.id, e)

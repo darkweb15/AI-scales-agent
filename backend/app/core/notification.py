@@ -1,10 +1,8 @@
-"""NotificationService — in-app event emission and Slack webhook delivery.
+"""NotificationService — in-process event emission + Slack delivery.
 
-In-app events are published to a Redis pub/sub channel so the WebSocket
-server (Task 13) can subscribe and forward them to connected dashboard
-clients (Requirement 17).
+Uses the in-process WebSocket broadcaster instead of Redis pub/sub.
+Works without any external dependencies in dev and production.
 """
-
 from __future__ import annotations
 
 import json
@@ -12,113 +10,87 @@ import logging
 from typing import Any, Dict, Optional
 
 import httpx
-import redis as redis_lib
 
 logger = logging.getLogger(__name__)
 
-# Redis pub/sub channel name for in-app events.
-IN_APP_CHANNEL = "ai_sales:events"
-
-# Valid event types (Requirement 17.1).
-EVENT_TYPES = frozenset(
-    [
-        "agent.status_changed",
-        "task.completed",
-        "task.failed",
-        "lead.status_changed",
-        "notification.new",
-        "kpi.updated",
-    ]
-)
+EVENT_TYPES = frozenset([
+    "agent.status_changed",
+    "agent.action_completed",
+    "task.completed",
+    "task.failed",
+    "lead.status_changed",
+    "lead.escalated",
+    "lead.scored",
+    "notification.new",
+    "kpi.updated",
+    "call.completed",
+    "email.sent",
+    "demo.scheduled",
+])
 
 
 class NotificationService:
-    """Broadcasts system events to in-app subscribers and Slack.
+    """Broadcasts system events to dashboard clients and Slack.
 
-    Parameters
-    ----------
-    redis_url:
-        Redis connection URL used for pub/sub.
-    slack_webhook_url:
-        Optional Slack incoming-webhook URL.  Slack delivery is silently
-        skipped when this is ``None``.
-    http_client:
-        Optional :class:`httpx.Client` for Slack HTTP calls.  A new client
-        is created if not provided.
+    Uses in-process WebSocket broadcaster — no Redis required.
     """
 
     def __init__(
         self,
-        redis_url: str = "redis://localhost:6379/0",
         slack_webhook_url: Optional[str] = None,
         http_client: Optional[httpx.Client] = None,
+        redis_url: Optional[str] = None,  # kept for API compatibility, ignored
     ) -> None:
-        self._redis_url = redis_url
         self._slack_webhook_url = slack_webhook_url
         self._http_client = http_client or httpx.Client(timeout=10.0)
-        self._redis: Optional[redis_lib.Redis] = None
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _get_redis(self) -> redis_lib.Redis:
-        if self._redis is None:
-            self._redis = redis_lib.from_url(self._redis_url, decode_responses=True)
-        return self._redis
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
 
     def emit(self, event_type: str, payload: Dict[str, Any]) -> None:
-        """Publish an event to the Redis pub/sub channel.
+        """Broadcast an event to all connected dashboard clients instantly."""
+        from app.core.websocket_broadcaster import broadcast_sync
+        broadcast_sync(event_type, payload)
 
-        The WebSocket server subscribes to ``IN_APP_CHANNEL`` and forwards
-        messages to connected dashboard clients.
-
-        Parameters
-        ----------
-        event_type:
-            One of the defined event type strings (e.g. ``"task.completed"``).
-        payload:
-            Arbitrary JSON-serialisable data describing the event.
-        """
-        message = json.dumps({"event_type": event_type, "payload": payload})
-        try:
-            self._get_redis().publish(IN_APP_CHANNEL, message)
-        except Exception as exc:
-            logger.warning("Failed to publish event '%s' to Redis: %s", event_type, exc)
+    async def emit_async(self, event_type: str, payload: Dict[str, Any]) -> None:
+        """Async version — use this from async contexts for better performance."""
+        from app.core.websocket_broadcaster import broadcast
+        await broadcast(event_type, payload)
 
     def send_slack(self, message: str) -> None:
-        """Post a plain-text message to the configured Slack webhook.
-
-        Silently skips if no webhook URL is configured.
-        """
+        """Post a message to Slack webhook."""
         if not self._slack_webhook_url:
             return
         try:
-            response = self._http_client.post(
-                self._slack_webhook_url,
-                json={"text": message},
-            )
-            response.raise_for_status()
-        except Exception as exc:
-            logger.warning("Failed to send Slack notification: %s", exc)
+            self._http_client.post(self._slack_webhook_url, json={"text": message})
+        except Exception as e:
+            logger.warning("Slack notification failed: %s", e)
 
-    def notify_admin(self, message: str, event_type: str = "system") -> None:
-        """Emit an in-app event and post to Slack.
-
-        Combines :meth:`emit` and :meth:`send_slack` for admin-level alerts.
-
-        Parameters
-        ----------
-        message:
-            Human-readable alert text (used as the Slack message body and
-            included in the event payload).
-        event_type:
-            Event type string for the in-app emission.  Defaults to
-            ``"system"``.
-        """
-        self.emit(event_type, {"message": message})
+    def notify_admin(self, message: str, event_type: str = "notification.new") -> None:
+        """Emit in-app event and post to Slack."""
+        self.emit(event_type, {"message": message, "level": "info"})
         self.send_slack(message)
+
+    def notify_escalation(self, lead_id: str, reason: str, agent: str) -> None:
+        """Emit escalation event — shows up in dashboard notification center."""
+        self.emit("lead.escalated", {
+            "lead_id": lead_id,
+            "reason": reason,
+            "agent": agent,
+            "level": "warning",
+        })
+        self.send_slack(f"🚨 Lead {lead_id[:8]} escalated by {agent}: {reason}")
+
+    def notify_call_completed(self, lead_id: str, outcome: str, score: int = 0) -> None:
+        """Emit call completion event to dashboard."""
+        self.emit("call.completed", {
+            "lead_id": lead_id,
+            "outcome": outcome,
+            "score": score,
+        })
+
+    def notify_demo_scheduled(self, lead_id: str, lead_name: str, scheduled_at: str) -> None:
+        """Emit demo scheduled event — updates KPI cards."""
+        self.emit("demo.scheduled", {
+            "lead_id": lead_id,
+            "lead_name": lead_name,
+            "scheduled_at": scheduled_at,
+        })
+        self.emit("kpi.updated", {"metric": "demos_scheduled", "delta": 1})

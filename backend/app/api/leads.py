@@ -175,3 +175,37 @@ def _log_to_dict(l) -> dict:
         "intent_detected": l.intent_detected, "outcome": l.outcome,
         "raw_transcript": l.raw_transcript,
     }
+
+
+@router.get("/{lead_id}/score")
+async def get_lead_score(lead_id: str, session: AsyncSession = Depends(get_session)):
+    """Get AI-powered lead score, sentiment, and recommended action."""
+    lead = await db.get_lead(session, uuid.UUID(lead_id))
+    if not lead:
+        raise HTTPException(404, "Lead not found")
+    interactions = await db.get_interactions_for_lead(session, uuid.UUID(lead_id))
+
+    from app.core.lead_scorer import get_lead_scorer
+    scorer = get_lead_scorer()
+    score_data = scorer.score_lead(lead, interactions)
+    return {
+        "lead_id": lead_id,
+        **score_data,
+        "interaction_count": len(interactions),
+    }
+
+
+@router.post("")
+async def create_lead_deduped(body: LeadCreate, session: AsyncSession = Depends(get_session)):
+    """Create lead with deduplication — won't create duplicates."""
+    from app.core.lead_deduplicator import get_deduplicator
+    dedup = get_deduplicator()
+    data = body.model_dump()
+    data["call_attempts"] = 0
+    data["email_attempts"] = 0
+    data["status"] = LeadStatus.new
+    lead, was_created = await dedup.find_or_create(session, db, data)
+    await session.commit()
+    result = _lead_to_dict(lead)
+    result["was_created"] = was_created
+    return result
