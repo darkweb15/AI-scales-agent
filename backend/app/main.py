@@ -42,41 +42,66 @@ def get_orchestrator():
 
 @app.on_event("startup")
 async def startup():
-    """Initialize DB, seed test data, and start the Orchestrator loop."""
+    """Initialize DB, seed test data, and start the LangGraph Orchestrator."""
     global _orchestrator
 
     from app.database.base import init_db
     await init_db()
     await seed_test_lead()
 
-    # Start the Orchestrator background loop
+    # Initialize RAG knowledge base in background
+    try:
+        from app.core.rag_knowledge_base import get_rag_knowledge_base
+        rag = get_rag_knowledge_base()
+        logger.info("✅ RAG knowledge base initialized")
+    except Exception as e:
+        logger.warning("⚠️  RAG init failed (non-fatal): %s", e)
+
+    # Start the LangGraph Orchestrator
     try:
         from app.database.base import async_session_factory
         from app.core.config import get_config
         from app.core.notification import NotificationService
-        from app.core.task_queue import TaskQueue
-        from app.orchestrator.orchestrator import Orchestrator
+        from app.orchestrator.graph_orchestrator import GraphOrchestrator
 
         config = get_config()
         notification = NotificationService()
 
-        # Use a stub TaskQueue (no Redis needed for basic operation)
-        task_queue = _build_task_queue()
-
-        _orchestrator = Orchestrator(
+        _orchestrator = GraphOrchestrator(
             session_factory=async_session_factory,
-            task_queue=task_queue,
             notification_service=notification,
             config=config,
         )
 
-        # Run orchestrator in background — doesn't block the server
+        # Run orchestrator in background
         asyncio.create_task(_orchestrator.run())
-        logger.info("✅ Orchestrator started — polling every %ds", config.orchestrator_poll_interval_seconds)
+        logger.info("✅ LangGraph Orchestrator started — real AI reasoning active")
+        logger.info("   → LLM: Groq llama-3.3-70b (primary) / OpenAI GPT-4o-mini (fallback)")
+        logger.info("   → RAG: ChromaDB with Pebble product knowledge")
 
     except Exception as e:
-        logger.warning("⚠️  Orchestrator failed to start: %s", e)
-        logger.warning("    Agents will work manually via API calls")
+        logger.warning("⚠️  LangGraph Orchestrator failed to start: %s", e)
+        logger.warning("    Falling back to legacy orchestrator...")
+        try:
+            from app.database.base import async_session_factory
+            from app.core.config import get_config
+            from app.core.notification import NotificationService
+            from app.orchestrator.orchestrator import Orchestrator
+
+            config = get_config()
+            notification = NotificationService()
+            task_queue = _build_task_queue()
+
+            _orchestrator = Orchestrator(
+                session_factory=async_session_factory,
+                task_queue=task_queue,
+                notification_service=notification,
+                config=config,
+            )
+            asyncio.create_task(_orchestrator.run())
+            logger.info("✅ Legacy orchestrator started as fallback")
+        except Exception as e2:
+            logger.warning("⚠️  All orchestrators failed: %s", e2)
 
 
 @app.on_event("shutdown")
