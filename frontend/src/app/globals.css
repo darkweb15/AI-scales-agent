@@ -2,20 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #F8F9FC;
-  color: #111827;
+  background: #0A0A0F;
+  color: #F0F0FF;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: #2A2A38; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #3A3A50; }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -23,12 +24,42 @@ body {
 }
 .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
 
-@keyframes shimmer-bar {
+@keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 .shimmer-bar {
-  background: linear-gradient(90deg, #6366F1, #8B5CF6, #06B6D4, #6366F1);
+  background: linear-gradient(90deg, #4F8EF7, #A78BFA, #34D399, #4F8EF7);
   background-size: 200% auto;
-  animation: shimmer-bar 2.5s linear infinite;
+  animation: shimmer 2.5s linear infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(79, 142, 247, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(79, 142, 247, 0.6); }
+}
+.glow-blue { animation: glow-pulse 2s ease-in-out infinite; }
+
+.glass-card {
+  background: rgba(17, 17, 24, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid #2A2A38;
+}
+
+.card {
+  background: #111118;
+  border: 1px solid #2A2A38;
+  border-radius: 16px;
+}
+
+.card-hover { transition: all 0.2s ease; }
+.card-hover:hover {
+  border-color: #3A3A50;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }

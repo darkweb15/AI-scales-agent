@@ -35,15 +35,15 @@ export default function AddLeadModal({ onClose, onAdded }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div className="bg-bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-accent-blue flex items-center justify-center">
               <UserPlus size={15} className="text-white" />
             </div>
-            <h2 className="text-sm font-black text-gray-900">Add New Lead</h2>
+            <h2 className="text-sm font-black text-text-primary">Add New Lead</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="text-text-muted hover:text-text-secondary transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -55,10 +55,10 @@ export default function AddLeadModal({ onClose, onAdded }: Props) {
               { label: "Last Name", key: "last_name", placeholder: "Doe" },
             ].map(({ label, key, placeholder }) => (
               <div key={key}>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide block mb-1">{label}</label>
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wide block mb-1">{label}</label>
                 <input value={(form as any)[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                   placeholder={placeholder}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 outline-none focus:border-indigo-400 focus:bg-white transition-all" />
+                  className="w-full bg-bg-elevated border border-border rounded-xl px-3 py-2 text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent-blue/50 transition-all" />
               </div>
             ))}
           </div>
@@ -69,30 +69,30 @@ export default function AddLeadModal({ onClose, onAdded }: Props) {
             { label: "Company", key: "company", placeholder: "Acme Corp", type: "text" },
           ].map(({ label, key, placeholder, type }) => (
             <div key={key}>
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide block mb-1">{label}</label>
+              <label className="text-[11px] font-bold text-text-muted uppercase tracking-wide block mb-1">{label}</label>
               <input type={type} value={(form as any)[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                 placeholder={placeholder}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 outline-none focus:border-indigo-400 focus:bg-white transition-all" />
+                className="w-full bg-bg-elevated border border-border rounded-xl px-3 py-2 text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent-blue/50 transition-all" />
             </div>
           ))}
 
           <div>
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide block mb-1">Notes</label>
+            <label className="text-[11px] font-bold text-text-muted uppercase tracking-wide block mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Any notes about this lead..."
               rows={2}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 outline-none focus:border-indigo-400 focus:bg-white transition-all resize-none" />
+              className="w-full bg-bg-elevated border border-border rounded-xl px-3 py-2 text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent-blue/50 transition-all resize-none" />
           </div>
 
-          {error && <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{error}</p>}
+          {error && <p className="text-xs font-semibold text-accent-red bg-accent-red-dim border border-accent-red/20 rounded-xl px-3 py-2">{error}</p>}
         </div>
 
         <div className="flex items-center gap-3 px-6 pb-6">
-          <button onClick={onClose} className="flex-1 bg-gray-100 text-gray-600 text-sm font-bold py-2.5 rounded-xl hover:bg-gray-200 transition-colors">
+          <button onClick={onClose} className="flex-1 bg-bg-elevated text-text-secondary text-sm font-bold py-2.5 rounded-xl hover:bg-bg-subtle transition-colors border border-border">
             Cancel
           </button>
           <button onClick={submit} disabled={loading}
-            className="flex-1 bg-indigo-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50">
+            className="flex-1 bg-accent-blue text-white text-sm font-bold py-2.5 rounded-xl hover:brightness-110 transition-colors disabled:opacity-50 shadow-lg shadow-accent-blue/20">
             {loading ? "Adding..." : "Add Lead"}
           </button>
         </div>

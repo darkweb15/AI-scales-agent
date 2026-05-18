@@ -5,7 +5,7 @@ import Topbar from "@/components/Topbar";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Download, TrendingUp, Users, Phone, Calendar } from "lucide-react";
 
-const COLORS = ["#6366F1","#10B981","#F59E0B","#8B5CF6","#EF4444","#06B6D4"];
+const COLORS = ["#4F8EF7","#34D399","#FBBF24","#A78BFA","#F87171","#06B6D4"];
 
 export default function AnalyticsPage() {
   const [collapsed, setCollapsed] = useState(false);
@@ -48,17 +48,17 @@ export default function AnalyticsPage() {
   const demos = leads.filter(l => l.status === "demo_scheduled" || l.status === "demo_completed").length;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
+    <div className="flex h-screen overflow-hidden bg-bg-base">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-5 space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-black text-gray-900">Analytics</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Real data from Supabase · {total} total leads</p>
+              <h2 className="text-lg font-black text-text-primary">Analytics</h2>
+              <p className="text-xs text-text-muted mt-0.5">Real data · {total} total leads</p>
             </div>
-            <button className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-600 hover:border-indigo-300 transition-all">
+            <button className="flex items-center gap-1.5 bg-bg-elevated border border-border rounded-xl px-3 py-2 text-xs font-bold text-text-secondary hover:border-accent-blue/30 transition-all">
               <Download size={13} /> Export
             </button>
           </div>
@@ -66,33 +66,33 @@ export default function AnalyticsPage() {
           {/* Summary cards */}
           <div className="grid grid-cols-4 gap-4">
             {[
-              { label: "Total Leads",    val: total.toString(),    icon: Users,    color: "#6366F1", bg: "bg-indigo-50" },
-              { label: "Interested",     val: interested.toString(), icon: TrendingUp, color: "#10B981", bg: "bg-emerald-50" },
-              { label: "Demos",          val: demos.toString(),    icon: Calendar, color: "#D97706", bg: "bg-amber-50" },
-              { label: "Conversion",     val: `${convRate}%`,      icon: Phone,    color: "#8B5CF6", bg: "bg-violet-50" },
+              { label: "Total Leads",    val: total.toString(),    icon: Users,    color: "#4F8EF7", bg: "#4F8EF715" },
+              { label: "Interested",     val: interested.toString(), icon: TrendingUp, color: "#34D399", bg: "#34D39915" },
+              { label: "Demos",          val: demos.toString(),    icon: Calendar, color: "#FBBF24", bg: "#FBBF2415" },
+              { label: "Conversion",     val: `${convRate}%`,      icon: Phone,    color: "#A78BFA", bg: "#A78BFA15" },
             ].map(({ label, val, icon: Icon, color, bg }) => (
-              <div key={label} className="bg-white rounded-xl border border-gray-200 p-4">
-                <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center mb-3`}>
+              <div key={label} className="card p-4">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: bg }}>
                   <Icon size={17} style={{ color }} />
                 </div>
-                <div className="text-2xl font-black text-gray-900">{val}</div>
-                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mt-0.5">{label}</div>
+                <div className="text-2xl font-black text-text-primary">{val}</div>
+                <div className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-0.5">{label}</div>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-3 gap-5">
             {/* Real funnel */}
-            <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Pipeline Funnel (Real Data)</h3>
+            <div className="col-span-2 card p-5">
+              <h3 className="text-sm font-bold text-text-primary mb-4">Pipeline Funnel</h3>
               {loading ? (
-                <div className="text-center py-8 text-sm text-gray-400">Loading...</div>
+                <div className="text-center py-8 text-sm text-text-muted">Loading...</div>
               ) : (
                 <div className="space-y-2.5">
                   {funnelData.map(({ stage, count, pct }, i) => (
                     <div key={stage} className="flex items-center gap-3">
-                      <div className="w-32 text-right text-xs font-semibold text-gray-500 shrink-0">{stage}</div>
-                      <div className="flex-1 h-8 bg-gray-50 rounded-lg overflow-hidden">
+                      <div className="w-32 text-right text-xs font-semibold text-text-secondary shrink-0">{stage}</div>
+                      <div className="flex-1 h-8 bg-bg-elevated rounded-lg overflow-hidden">
                         <div className="h-full rounded-lg flex items-center px-3 transition-all duration-700"
                           style={{ width: `${Math.max(pct, count > 0 ? 8 : 0)}%`, backgroundColor: COLORS[i] || "#94A3B8" }}>
                           <span className="text-xs font-extrabold text-white">{count}</span>
@@ -106,8 +106,8 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Source breakdown */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-bold text-gray-900 mb-4">Lead Sources</h3>
+            <div className="card p-5">
+              <h3 className="text-sm font-bold text-text-primary mb-4">Lead Sources</h3>
               {sourceData.length > 0 ? (
                 <>
                   <ResponsiveContainer width="100%" height={150}>
@@ -123,27 +123,27 @@ export default function AnalyticsPage() {
                       <div key={name} className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                          <span className="text-[11px] text-gray-600 font-medium capitalize">{name}</span>
+                          <span className="text-[11px] text-text-secondary font-medium capitalize">{name}</span>
                         </div>
-                        <span className="text-[11px] font-bold text-gray-800">{value as number}</span>
+                        <span className="text-[11px] font-bold text-text-primary">{value as number}</span>
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <div className="text-center py-8 text-sm text-gray-400">No data yet</div>
+                <div className="text-center py-8 text-sm text-text-muted">No data yet</div>
               )}
             </div>
           </div>
 
           {/* Status bar chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-4">Leads by Status</h3>
+          <div className="card p-5">
+            <h3 className="text-sm font-bold text-text-primary mb-4">Leads by Status</h3>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={funnelData} margin={{ left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                <XAxis dataKey="stage" tick={{ fontSize: 9, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A38" />
+                <XAxis dataKey="stage" tick={{ fontSize: 9, fill: "#55556A" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#55556A" }} axisLine={false} tickLine={false} />
                 <Tooltip />
                 <Bar dataKey="count" radius={[4,4,0,0]}>
                   {funnelData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
