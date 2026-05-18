@@ -32,28 +32,29 @@ export default function DashboardPage() {
   }, {});
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg-base">
+    <div className="flex h-screen overflow-hidden" style={{ background: "#F8F9FC" }}>
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-5 pb-20 space-y-5">
           <KPICards stats={stats} totalLeads={leads.length} statusCounts={statusCounts} />
 
+          {/* Business Data Banner */}
           {stats && (
-            <div className="bg-gradient-to-r from-accent-blue to-accent-purple rounded-2xl p-4 text-white flex items-center justify-between shadow-lg shadow-accent-blue/10">
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-xl p-4 text-white flex items-center justify-between">
               <div>
-                <div className="text-base font-black">Business Database Connected</div>
-                <div className="text-white/70 text-xs mt-0.5">
-                  {stats.total_records?.toLocaleString()} total records &middot; {stats.with_phone?.toLocaleString()} phone numbers &middot; {stats.with_address?.toLocaleString()} addresses
+                <div className="text-base font-black">📊 Business Database Connected</div>
+                <div className="text-indigo-200 text-xs mt-0.5">
+                  {stats.total_records?.toLocaleString()} total records · {stats.with_phone?.toLocaleString()} phone numbers · {stats.with_address?.toLocaleString()} addresses
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-center">
                   <div className="text-xl font-black">{leads.length}</div>
-                  <div className="text-white/60 text-[10px] uppercase tracking-wide">In Pipeline</div>
+                  <div className="text-indigo-200 text-[10px] uppercase tracking-wide">In Pipeline</div>
                 </div>
-                <a href="/business" className="bg-white/15 backdrop-blur text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-white/25 transition-colors border border-white/20">
-                  View Analytics
+                <a href="/business" className="bg-white text-indigo-600 text-xs font-bold px-4 py-2 rounded-xl hover:bg-indigo-50 transition-colors">
+                  View Analytics →
                 </a>
               </div>
             </div>

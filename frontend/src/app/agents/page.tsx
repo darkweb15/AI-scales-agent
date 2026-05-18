@@ -5,12 +5,12 @@ import Topbar from "@/components/Topbar";
 import { Phone, Mail, Calendar, MessageSquare, Inbox, PhoneIncoming, Pause, Play, AlertTriangle, CheckCircle2, Settings, X } from "lucide-react";
 
 const AGENTS = [
-  { id:"cold_calling",    name:"Cold Calling",    icon: Phone,         status:"active", queue:24,  done:87,  failed:2,  success:94, color:"#4F8EF7", grad:"from-accent-blue to-accent-purple" },
-  { id:"follow_up",       name:"Follow-up",        icon: Mail,          status:"active", queue:41,  done:132, failed:1,  success:88, color:"#34D399", grad:"from-accent-green to-[#06B6D4]" },
-  { id:"demo_scheduling", name:"Demo Scheduling",  icon: Calendar,      status:"active", queue:8,   done:19,  failed:0,  success:97, color:"#4F8EF7", grad:"from-[#0284C7] to-accent-blue" },
-  { id:"auto_mail",       name:"Auto Mail",         icon: MessageSquare, status:"paused", queue:0,   done:204, failed:0,  success:99, color:"#FBBF24", grad:"from-accent-amber to-[#F97316]" },
-  { id:"auto_reply",      name:"Auto Reply",        icon: Inbox,         status:"active", queue:12,  done:56,  failed:3,  success:91, color:"#A78BFA", grad:"from-accent-purple to-[#7C3AED]" },
-  { id:"call_answering",  name:"Call Answering",    icon: PhoneIncoming, status:"error",  queue:3,   done:31,  failed:5,  success:76, color:"#F87171", grad:"from-accent-red to-[#E11D48]" },
+  { id:"cold_calling",    name:"Cold Calling",    icon: Phone,         status:"active", queue:24,  done:87,  failed:2,  success:94, color:"#6366F1", grad:"from-indigo-500 to-violet-600" },
+  { id:"follow_up",       name:"Follow-up",        icon: Mail,          status:"active", queue:41,  done:132, failed:1,  success:88, color:"#10B981", grad:"from-emerald-500 to-teal-500" },
+  { id:"demo_scheduling", name:"Demo Scheduling",  icon: Calendar,      status:"active", queue:8,   done:19,  failed:0,  success:97, color:"#0284C7", grad:"from-sky-500 to-cyan-500" },
+  { id:"auto_mail",       name:"Auto Mail",         icon: MessageSquare, status:"paused", queue:0,   done:204, failed:0,  success:99, color:"#D97706", grad:"from-amber-400 to-orange-500" },
+  { id:"auto_reply",      name:"Auto Reply",        icon: Inbox,         status:"active", queue:12,  done:56,  failed:3,  success:91, color:"#8B5CF6", grad:"from-violet-500 to-purple-600" },
+  { id:"call_answering",  name:"Call Answering",    icon: PhoneIncoming, status:"error",  queue:3,   done:31,  failed:5,  success:76, color:"#DC2626", grad:"from-red-500 to-rose-600" },
 ];
 
 const TASKS = [
@@ -29,14 +29,14 @@ export default function AgentsPage() {
   const Icon = agent.icon;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg-base">
+    <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-5">
           <div className="mb-5">
-            <h2 className="text-lg font-black text-text-primary">Agent Control Panel</h2>
-            <p className="text-xs text-text-muted mt-0.5">Monitor and control all AI agents</p>
+            <h2 className="text-lg font-black text-gray-900">Agent Control Panel</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Monitor and control all AI agents</p>
           </div>
 
           {/* Agent tabs */}
@@ -47,11 +47,11 @@ export default function AgentsPage() {
               return (
                 <button key={a.id} onClick={() => setActive(a.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
-                    active === a.id ? "bg-accent-blue text-white border-accent-blue shadow-lg shadow-accent-blue/20" : "bg-bg-elevated text-text-secondary border-border hover:border-accent-blue/30"
+                    active === a.id ? "bg-indigo-600 text-white border-indigo-600 shadow-sm" : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
                   }`}>
                   <AIcon size={13} />
                   {a.name}
-                  <span className={`w-1.5 h-1.5 rounded-full ${st==="active"?"bg-accent-green":st==="paused"?"bg-accent-amber":"bg-accent-red"}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full ${st==="active"?"bg-emerald-400":st==="paused"?"bg-amber-400":"bg-red-500"}`} />
                 </button>
               );
             })}
@@ -61,17 +61,17 @@ export default function AgentsPage() {
             {/* Agent detail */}
             <div className="col-span-2 space-y-4">
               {/* Header card */}
-              <div className="card p-5">
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${agent.grad} flex items-center justify-center shadow-md`}>
                       <Icon size={22} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-text-primary">{agent.name} Agent</h3>
+                      <h3 className="text-base font-black text-gray-900">{agent.name} Agent</h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={`w-2 h-2 rounded-full ${states[active]==="active"?"bg-accent-green pulse-dot":states[active]==="paused"?"bg-accent-amber":"bg-accent-red"}`} />
-                        <span className={`text-xs font-bold ${states[active]==="active"?"text-accent-green":states[active]==="paused"?"text-accent-amber":"text-accent-red"}`}>
+                        <span className={`w-2 h-2 rounded-full ${states[active]==="active"?"bg-emerald-500 pulse-dot":states[active]==="paused"?"bg-amber-400":"bg-red-500"}`} />
+                        <span className={`text-xs font-bold ${states[active]==="active"?"text-emerald-600":states[active]==="paused"?"text-amber-600":"text-red-600"}`}>
                           {states[active] === "active" ? "Running" : states[active] === "paused" ? "Paused" : "Error"}
                         </span>
                       </div>
@@ -80,23 +80,23 @@ export default function AgentsPage() {
                   <div className="flex items-center gap-2">
                     {states[active] === "paused" ? (
                       <button onClick={() => setStates(s=>({...s,[active]:"active"}))}
-                        className="flex items-center gap-1.5 bg-accent-green text-white text-xs font-bold px-3 py-2 rounded-xl hover:brightness-110 transition-colors">
+                        className="flex items-center gap-1.5 bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-emerald-600 transition-colors">
                         <Play size={12} /> Resume
                       </button>
                     ) : (
                       <button onClick={() => setStates(s=>({...s,[active]:"paused"}))}
-                        className="flex items-center gap-1.5 bg-bg-elevated text-text-secondary text-xs font-bold px-3 py-2 rounded-xl hover:bg-bg-subtle transition-colors border border-border">
+                        className="flex items-center gap-1.5 bg-gray-100 text-gray-600 text-xs font-bold px-3 py-2 rounded-xl hover:bg-gray-200 transition-colors">
                         <Pause size={12} /> Pause
                       </button>
                     )}
-                    <button className="flex items-center gap-1.5 bg-bg-elevated text-text-secondary text-xs font-bold px-3 py-2 rounded-xl hover:bg-bg-subtle transition-colors border border-border">
+                    <button className="flex items-center gap-1.5 bg-gray-100 text-gray-600 text-xs font-bold px-3 py-2 rounded-xl hover:bg-gray-200 transition-colors">
                       <Settings size={12} /> Config
                     </button>
                   </div>
                 </div>
 
                 {states[active] === "error" && (
-                  <div className="flex items-center gap-2 text-xs font-semibold text-accent-red bg-accent-red-dim border border-accent-red/20 rounded-xl px-3 py-2 mb-4">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-4">
                     <AlertTriangle size={13} /> Telephony API timeout — retrying in 30s
                   </div>
                 )}
@@ -108,41 +108,41 @@ export default function AgentsPage() {
                     { label:"Failed",   val: agent.failed, red: agent.failed > 0 },
                     { label:"Success",  val: `${agent.success}%`, green: agent.success >= 90 },
                   ].map(({ label, val, red, green }) => (
-                    <div key={label} className="text-center bg-bg-elevated rounded-xl py-3 border border-border">
-                      <div className={`text-xl font-black ${red?"text-accent-red":green?"text-accent-green":"text-text-primary"}`}>{val}</div>
-                      <div className="text-[10px] font-bold text-text-muted uppercase tracking-wide mt-0.5">{label}</div>
+                    <div key={label} className="text-center bg-gray-50 rounded-xl py-3 border border-gray-100">
+                      <div className={`text-xl font-black ${red?"text-red-500":green?"text-emerald-600":"text-gray-900"}`}>{val}</div>
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mt-0.5">{label}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Task queue */}
-              <div className="card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-                  <h3 className="text-sm font-bold text-text-primary">Live Task Queue</h3>
-                  <span className="text-xs font-bold text-accent-blue bg-accent-blue-dim px-2 py-0.5 rounded-full">{TASKS.length} tasks</span>
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+                  <h3 className="text-sm font-bold text-gray-900">Live Task Queue</h3>
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{TASKS.length} tasks</span>
                 </div>
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-bg-elevated border-b border-border">
+                    <tr className="bg-gray-50 border-b border-gray-100">
                       {["Lead","Company","Action","Priority","Attempts","Scheduled",""].map(h => (
-                        <th key={h} className="text-left text-[10px] font-bold text-text-muted uppercase tracking-wider px-4 py-2.5">{h}</th>
+                        <th key={h} className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 py-2.5">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {TASKS.map((t, i) => (
-                      <tr key={i} className="border-b border-border/50 hover:bg-bg-elevated/50 transition-colors">
-                        <td className="px-4 py-2.5 text-xs font-semibold text-text-primary">{t.lead}</td>
-                        <td className="px-4 py-2.5 text-xs text-text-secondary">{t.company}</td>
+                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-2.5 text-xs font-semibold text-gray-800">{t.lead}</td>
+                        <td className="px-4 py-2.5 text-xs text-gray-500">{t.company}</td>
                         <td className="px-4 py-2.5">
-                          <span className="text-[10px] font-bold bg-accent-blue-dim text-accent-blue px-2 py-0.5 rounded-full">{t.action}</span>
+                          <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">{t.action}</span>
                         </td>
-                        <td className="px-4 py-2.5 text-xs font-bold text-text-secondary">P{t.priority}</td>
-                        <td className="px-4 py-2.5 text-xs text-text-secondary">{t.attempts}</td>
-                        <td className="px-4 py-2.5 text-xs text-text-secondary">{t.scheduled}</td>
+                        <td className="px-4 py-2.5 text-xs font-bold text-gray-600">P{t.priority}</td>
+                        <td className="px-4 py-2.5 text-xs text-gray-500">{t.attempts}</td>
+                        <td className="px-4 py-2.5 text-xs text-gray-500">{t.scheduled}</td>
                         <td className="px-4 py-2.5">
-                          <button className="text-[10px] font-bold text-accent-red hover:text-accent-red/80 transition-colors">Cancel</button>
+                          <button className="text-[10px] font-bold text-red-500 hover:text-red-700 transition-colors">Cancel</button>
                         </td>
                       </tr>
                     ))}
@@ -152,8 +152,8 @@ export default function AgentsPage() {
             </div>
 
             {/* Config panel */}
-            <div className="card p-5">
-              <h3 className="text-sm font-bold text-text-primary mb-4">Configuration</h3>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="text-sm font-bold text-gray-900 mb-4">Configuration</h3>
               <div className="space-y-4">
                 {[
                   { label:"Max Call Attempts", val:"3", type:"number" },
@@ -165,12 +165,12 @@ export default function AgentsPage() {
                   { label:"Max Task Retries", val:"3", type:"number" },
                 ].map(({ label, val, type }) => (
                   <div key={label}>
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wide block mb-1">{label}</label>
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide block mb-1">{label}</label>
                     <input defaultValue={val} type={type}
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm font-medium text-text-primary outline-none focus:border-accent-blue/50 transition-all" />
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-800 outline-none focus:border-indigo-400 focus:bg-white transition-all" />
                   </div>
                 ))}
-                <button className="w-full bg-accent-blue text-white text-xs font-bold py-2.5 rounded-xl hover:brightness-110 transition-colors mt-2 shadow-lg shadow-accent-blue/20">
+                <button className="w-full bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors mt-2">
                   Save Configuration
                 </button>
               </div>
