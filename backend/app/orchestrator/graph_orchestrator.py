@@ -541,44 +541,25 @@ Notes: {lead.get('notes', '')}
     # ------------------------------------------------------------------
 
     def _get_available_actions(self, lead: Dict) -> List[str]:
-        """Return valid actions for this lead based on status — LLM picks the best one."""
+        """Return all possible actions — LLM decides which is best.
+
+        Only terminal states are filtered out (compliance/legal).
+        Everything else is presented to the LLM for reasoning.
+        """
         status = lead.get("status", "new")
-        call_attempts = lead.get("call_attempts", 0)
-        email_attempts = lead.get("email_attempts", 0)
-        total_attempts = call_attempts + email_attempts
 
         from ..models.enums import LeadStatus
 
-        # Terminal states — no action
+        # Terminal states — hard compliance boundaries
         if status in (LeadStatus.do_not_contact, LeadStatus.unsubscribed,
                       LeadStatus.requires_human_review, LeadStatus.converted):
             return []
 
-        # Max attempts reached
-        if total_attempts >= self._config.max_total_follow_up_attempts:
-            return ["escalate"]
-
-        if status == LeadStatus.new:
-            if call_attempts < self._config.max_cold_call_attempts:
-                return ["cold_call", "send_email"]  # LLM picks
-            return ["send_email"]
-
-        if status == LeadStatus.contacted:
-            return ["follow_up", "send_email", "cold_call"]  # LLM picks best
-
-        if status == LeadStatus.interested:
-            return ["schedule_demo", "send_email"]
-
-        if status == LeadStatus.follow_up_scheduled:
-            return ["send_email", "cold_call"]
-
-        if status in (LeadStatus.demo_scheduled, LeadStatus.demo_completed):
-            return ["send_email"]  # reminder or follow-up
-
         if status == LeadStatus.not_interested:
-            return []  # respect the decision
+            return []
 
-        return ["send_email"]
+        # All other statuses: let the LLM reason about the full action space
+        return ["cold_call", "send_email", "follow_up", "schedule_demo", "escalate"]
 
     def _serialize_lead(self, lead) -> Dict:
         return {
@@ -648,7 +629,7 @@ Notes: {lead.get('notes', '')}
     # ------------------------------------------------------------------
 
     async def _tick(self) -> None:
-        """Poll DB for pending leads, score + prioritize, then process top batch."""
+        """Poll DB for pending leads, LLM-score + prioritize, process top batch."""
         now = datetime.now(timezone.utc)
         async with self._session_factory() as session:
             leads = await self._db.query_leads_pending_action(session, now)
@@ -656,26 +637,31 @@ Notes: {lead.get('notes', '')}
         if not leads:
             return
 
-        # Score and prioritize leads — process highest-value first
+        # LLM-score and prioritize leads
         scored_leads = []
         for lead in leads:
             try:
                 async with self._session_factory() as session:
                     interactions = await self._db.get_interactions_for_lead(session, lead.id)
-                from app.core.lead_scorer import get_lead_scorer
-                scorer = get_lead_scorer()
-                score_data = scorer.score_lead(lead, interactions)
-                scored_leads.append((score_data["score"], lead))
+                lead_data = self._serialize_lead(lead)
+                history = self._serialize_interactions(interactions[-5:])
+                history_text = "\n".join(
+                    [f"- {h.get('channel')}: {h.get('outcome')}" for h in history]
+                ) if history else "None"
+                lead_summary = (
+                    f"{lead_data.get('first_name', '')} {lead_data.get('last_name', '')} "
+                    f"at {lead_data.get('company', 'Unknown')} — status: {lead_data.get('status')}"
+                )
+                score_data = self._llm.score_lead_with_llm(lead_summary, history_text)
+                scored_leads.append((score_data.get("score", 50), lead))
             except Exception:
-                scored_leads.append((50, lead))  # default score
+                scored_leads.append((50, lead))
 
-        # Sort by score descending — highest value leads first
         scored_leads.sort(key=lambda x: x[0], reverse=True)
 
-        # Process max 5 leads per tick (Groq free tier: 30 req/min)
         batch = [lead for _, lead in scored_leads[:5]]
         logger.info(
-            "🔄 Graph tick: processing %d/%d leads (top score: %d)",
+            "Graph tick: processing %d/%d leads (top score: %d)",
             len(batch), len(leads),
             scored_leads[0][0] if scored_leads else 0,
         )
@@ -684,6 +670,6 @@ Notes: {lead.get('notes', '')}
             try:
                 await self.process_lead(str(lead.id))
                 if i < len(batch) - 1:
-                    await asyncio.sleep(3)  # 3s between leads → ~20 calls/min
+                    await asyncio.sleep(3)
             except Exception as e:
                 logger.exception("Error processing lead %s: %s", lead.id, e)
