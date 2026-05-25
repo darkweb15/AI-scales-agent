@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import leads, agents, bookings, analytics, notifications, websocket, test_call
-from app.api import business_data, call_webhook, campaigns, voice_webhook
+from app.api import business_data, call_webhook, campaigns, voice_webhook, ai_chat
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ app.include_router(business_data.router, prefix="/api/business",      tags=["bus
 app.include_router(call_webhook.router,  prefix="/api",               tags=["webhook"])
 app.include_router(campaigns.router,     prefix="/api/campaigns",     tags=["campaigns"])
 app.include_router(voice_webhook.router, prefix="/api",               tags=["voice"])
+app.include_router(ai_chat.router,      prefix="/api/ai",            tags=["ai"])
 
 # Global orchestrator instance — accessible from agents API
 _orchestrator = None

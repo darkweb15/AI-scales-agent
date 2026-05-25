@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import KPICards from "@/components/KPICards";
@@ -9,13 +9,15 @@ import ActivityOverview from "@/components/ActivityOverview";
 import TopAgents from "@/components/TopAgents";
 import RecentActivities from "@/components/RecentActivities";
 import AIAssistantBar from "@/components/AIAssistantBar";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function DashboardPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [leads, setLeads] = useState<any[]>([]);
+  const { connected, lastEvent } = useWebSocket("ws://localhost:8001/api/ws/dashboard");
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     Promise.all([
       fetch("http://localhost:8001/api/business/stats").then(r => r.json()).catch(() => null),
       fetch("http://localhost:8001/api/leads?limit=200").then(r => r.json()).catch(() => []),
@@ -24,6 +26,15 @@ export default function DashboardPage() {
       setLeads(Array.isArray(leadsData) ? leadsData : []);
     });
   }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Re-fetch when WebSocket broadcasts a relevant event
+  useEffect(() => {
+    if (lastEvent && ["lead_updated", "lead_created", "agent_action", "orchestrator_tick"].includes(lastEvent.event_type)) {
+      fetchData();
+    }
+  }, [lastEvent, fetchData]);
 
   // Count leads by status
   const statusCounts = leads.reduce((acc: any, l: any) => {
