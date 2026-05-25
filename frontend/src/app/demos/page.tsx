@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
+import AddLeadModal from "@/components/AddLeadModal";
 import { Calendar, Clock, Video, Send, RefreshCw, X, Plus } from "lucide-react";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -22,6 +23,7 @@ const STATUS_DOT: Record<string, string> = {
 
 export default function DemosPage() {
   const [collapsed, setCollapsed] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [bookings, setBookings] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
@@ -65,9 +67,10 @@ export default function DemosPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
+      {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={fetchData} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5">
           <div className="flex items-center justify-between mb-5">
             <div>

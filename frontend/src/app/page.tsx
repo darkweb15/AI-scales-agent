@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import KPICards from "@/components/KPICards";
@@ -9,13 +9,17 @@ import ActivityOverview from "@/components/ActivityOverview";
 import TopAgents from "@/components/TopAgents";
 import RecentActivities from "@/components/RecentActivities";
 import AIAssistantBar from "@/components/AIAssistantBar";
+import AddLeadModal from "@/components/AddLeadModal";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function DashboardPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [leads, setLeads] = useState<any[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const { connected, lastEvent } = useWebSocket("ws://localhost:8001/ws/dashboard");
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     Promise.all([
       fetch("http://localhost:8001/api/business/stats").then(r => r.json()).catch(() => null),
       fetch("http://localhost:8001/api/leads?limit=200").then(r => r.json()).catch(() => []),
@@ -25,6 +29,15 @@ export default function DashboardPage() {
     });
   }, []);
 
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Re-fetch when WebSocket broadcasts a relevant event
+  useEffect(() => {
+    if (lastEvent && ["lead_updated", "lead_created", "agent_action", "orchestrator_tick"].includes(lastEvent.event_type)) {
+      fetchData();
+    }
+  }, [lastEvent, fetchData]);
+
   // Count leads by status
   const statusCounts = leads.reduce((acc: any, l: any) => {
     acc[l.status] = (acc[l.status] || 0) + 1;
@@ -33,9 +46,10 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "#F8F9FC" }}>
+      {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={fetchData} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5 pb-20 space-y-5">
           <KPICards stats={stats} totalLeads={leads.length} statusCounts={statusCounts} />
 

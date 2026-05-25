@@ -5,7 +5,7 @@ import Topbar from "@/components/Topbar";
 import AddLeadModal from "@/components/AddLeadModal";
 import { Search, MoreHorizontal, Phone, Mail, Plus, X, PhoneCall, RefreshCw } from "lucide-react";
 
-const STATUSES = ["new","contacted","interested","follow_up_scheduled","demo_scheduled","demo_completed","converted","not_interested","unsubscribed","do_not_contact"];
+const STATUSES = ["new","contacted","interested","follow_up_scheduled","demo_scheduled","demo_completed","converted","not_interested","requires_human_review","unsubscribed","do_not_contact"];
 
 const STATUS_BADGE: Record<string, string> = {
   new: "bg-slate-100 text-slate-600",
@@ -18,6 +18,7 @@ const STATUS_BADGE: Record<string, string> = {
   not_interested: "bg-red-100 text-red-600",
   unsubscribed: "bg-gray-100 text-gray-500",
   do_not_contact: "bg-red-200 text-red-800",
+  requires_human_review: "bg-orange-100 text-orange-700",
 };
 
 export default function LeadsPage() {
@@ -77,7 +78,7 @@ export default function LeadsPage() {
       {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={fetchLeads} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5">          <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-lg font-black text-gray-900">Leads</h2>

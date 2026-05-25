@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
+import AddLeadModal from "@/components/AddLeadModal";
 import {
   BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -37,6 +38,7 @@ function StatCard({ label, value, sub, icon: Icon, color, pct }: any) {
 
 export default function BusinessDataPage() {
   const [collapsed, setCollapsed] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [data, setData] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [search, setSearch] = useState("");
@@ -84,9 +86,10 @@ export default function BusinessDataPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
+      {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={fetchData} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5">
 
           {/* Header */}

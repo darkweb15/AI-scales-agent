@@ -16,6 +16,13 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure .env is loaded regardless of working directory
+_env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(_env_path)
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -519,7 +526,7 @@ class AgentLLM:
             if resp.status_code == 200:
                 return resp.json()["choices"][0]["message"]["content"].strip()
             if resp.status_code == 429:
-                logger.info("Groq rate limited — trying OpenAI")
+                logger.warning("Groq rate limited (429) — trying OpenAI")
             else:
                 logger.warning(
                     "Groq error %d: %s", resp.status_code, resp.text[:100]
