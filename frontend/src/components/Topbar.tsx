@@ -1,7 +1,11 @@
 "use client";
 import { Search, Bell, Plus, ChevronDown, Sparkles } from "lucide-react";
 
-export default function Topbar() {
+interface TopbarProps {
+  onAddLead?: () => void;
+}
+
+export default function Topbar({ onAddLead }: TopbarProps) {
   return (
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
       <div>
@@ -33,7 +37,7 @@ export default function Topbar() {
           <Sparkles size={12} className="text-violet-500" /> AI Insights
         </button>
 
-        <button className="flex items-center gap-1.5 bg-indigo-600 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition-all">
+        <button onClick={onAddLead} className="flex items-center gap-1.5 bg-indigo-600 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition-all">
           <Plus size={13} /> Add Lead
         </button>
 

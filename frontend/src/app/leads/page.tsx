@@ -78,7 +78,7 @@ export default function LeadsPage() {
       {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={fetchLeads} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5">          <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-lg font-black text-gray-900">Leads</h2>

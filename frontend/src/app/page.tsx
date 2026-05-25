@@ -9,12 +9,14 @@ import ActivityOverview from "@/components/ActivityOverview";
 import TopAgents from "@/components/TopAgents";
 import RecentActivities from "@/components/RecentActivities";
 import AIAssistantBar from "@/components/AIAssistantBar";
+import AddLeadModal from "@/components/AddLeadModal";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function DashboardPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [leads, setLeads] = useState<any[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
   const { connected, lastEvent } = useWebSocket("ws://localhost:8001/ws/dashboard");
 
   const fetchData = useCallback(() => {
@@ -44,9 +46,10 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "#F8F9FC" }}>
+      {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={fetchData} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5 pb-20 space-y-5">
           <KPICards stats={stats} totalLeads={leads.length} statusCounts={statusCounts} />
 

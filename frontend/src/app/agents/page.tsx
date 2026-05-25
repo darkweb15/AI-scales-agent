@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
+import AddLeadModal from "@/components/AddLeadModal";
 import { Phone, Mail, Calendar, MessageSquare, Inbox, PhoneIncoming, Pause, Play, AlertTriangle, Zap, RefreshCw } from "lucide-react";
 
 const API = "http://localhost:8001";
@@ -36,6 +37,7 @@ interface AgentConfig {
 
 export default function AgentsPage() {
   const [collapsed, setCollapsed] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [active, setActive] = useState("cold_calling");
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [config, setConfig] = useState<AgentConfig | null>(null);
@@ -162,9 +164,10 @@ export default function AgentsPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
+      {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={() => {}} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5">
           <div className="flex items-center justify-between mb-5">
             <div>

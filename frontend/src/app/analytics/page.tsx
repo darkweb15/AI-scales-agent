@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
+import AddLeadModal from "@/components/AddLeadModal";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Download, TrendingUp, Users, Phone, Calendar } from "lucide-react";
 
@@ -9,6 +10,7 @@ const COLORS = ["#6366F1","#10B981","#F59E0B","#8B5CF6","#EF4444","#06B6D4"];
 
 export default function AnalyticsPage() {
   const [collapsed, setCollapsed] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,9 +51,10 @@ export default function AnalyticsPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F8F9FC]">
+      {showAddModal && <AddLeadModal onClose={() => setShowAddModal(false)} onAdded={() => {}} />}
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar />
+        <Topbar onAddLead={() => setShowAddModal(true)} />
         <main className="flex-1 overflow-y-auto p-5 space-y-5">
           <div className="flex items-center justify-between">
             <div>
