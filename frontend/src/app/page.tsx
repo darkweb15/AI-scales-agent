@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [leads, setLeads] = useState<any[]>([]);
-  const { connected, lastEvent } = useWebSocket("ws://localhost:8001/api/ws/dashboard");
+  const { connected, lastEvent } = useWebSocket("ws://localhost:8001/ws/dashboard");
 
   const fetchData = useCallback(() => {
     Promise.all([
