@@ -21,7 +21,7 @@ db = DatabaseService()
 
 class LeadCreate(BaseModel):
     first_name: str
-    last_name: str
+    last_name: str = ""
     email: str
     phone: Optional[str] = None
     company: Optional[str] = None

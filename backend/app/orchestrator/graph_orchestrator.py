@@ -258,8 +258,9 @@ Notes: {lead.get('notes', '')}
             state["next_node"] = "end"
             return state
 
-        # LLM reasons about next action
-        decision = self._llm.reason_next_action(
+        # LLM reasons about next action (run in thread to avoid blocking event loop)
+        decision = await asyncio.to_thread(
+            self._llm.reason_next_action,
             lead_summary=lead_summary,
             interaction_history=history_text,
             available_actions=available_actions,
@@ -292,9 +293,11 @@ Notes: {lead.get('notes', '')}
                 state["action_result"] = {"outcome": "skipped", "reason": "VAPI_API_KEY not set"}
                 return state
 
-            # Generate personalized call script using LLM
+            # Generate personalized call script using LLM (threaded to avoid blocking)
             rag_context = self._rag.retrieve(f"Pebble POS features pricing for {company}")
-            script = self._llm.generate_call_script(lead_name, company, rag_context=rag_context)
+            script = await asyncio.to_thread(
+                self._llm.generate_call_script, lead_name, company, rag_context=rag_context
+            )
 
             from ..agents.cold_calling.vapi_telephony import VapiTelephonyAPI
             telephony = VapiTelephonyAPI()
@@ -342,8 +345,9 @@ Notes: {lead.get('notes', '')}
                 state["action_result"] = {"outcome": "skipped", "reason": "SENDGRID_API_KEY not set"}
                 return state
 
-            # LLM generates personalized email content
-            email_content = self._llm.generate_email(
+            # LLM generates personalized email content (threaded to avoid blocking)
+            email_content = await asyncio.to_thread(
+                self._llm.generate_email,
                 lead_name=lead_name,
                 company=company,
                 intent=status,
@@ -403,8 +407,9 @@ Notes: {lead.get('notes', '')}
         if history:
             last_channel = history[-1].get("channel", "call")
 
-        # LLM-driven channel selection (not keyword-based)
-        channel_decision = self._llm.reason_next_action(
+        # LLM-driven channel selection (threaded to avoid blocking)
+        channel_decision = await asyncio.to_thread(
+            self._llm.reason_next_action,
             lead_summary=f"Lead {lead.get('first_name')} needs follow-up. Last contact via {last_channel}.",
             interaction_history="\n".join([f"- {h.get('channel')}: {h.get('outcome')}" for h in history[-3:]]),
             available_actions=["call", "email"],
@@ -427,8 +432,9 @@ Notes: {lead.get('notes', '')}
         logger.info("📅 Scheduling demo for %s", lead_name)
 
         try:
-            # Generate demo scheduling email using LLM
-            email_content = self._llm.generate_email(
+            # Generate demo scheduling email using LLM (threaded to avoid blocking)
+            email_content = await asyncio.to_thread(
+                self._llm.generate_email,
                 lead_name=lead_name,
                 company=lead.get("company", ""),
                 intent="demo_scheduling",
@@ -652,7 +658,9 @@ Notes: {lead.get('notes', '')}
                     f"{lead_data.get('first_name', '')} {lead_data.get('last_name', '')} "
                     f"at {lead_data.get('company', 'Unknown')} — status: {lead_data.get('status')}"
                 )
-                score_data = self._llm.score_lead_with_llm(lead_summary, history_text)
+                score_data = await asyncio.to_thread(
+                    self._llm.score_lead_with_llm, lead_summary, history_text
+                )
                 scored_leads.append((score_data.get("score", 50), lead))
             except Exception:
                 scored_leads.append((50, lead))
