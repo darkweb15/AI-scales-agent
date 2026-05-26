@@ -1,6 +1,8 @@
 """AI Chat endpoint — powers the dashboard AI Assistant bar."""
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 from typing import Optional
 
@@ -41,9 +43,10 @@ async def ai_chat(req: ChatRequest):
     if req.context:
         user_prompt += f"\n\nContext: {req.context}"
 
-    import json
-    response = llm._call_llm_with_retry(
-        system_prompt, user_prompt, temperature=0.5, max_tokens=300
+    # Run blocking LLM call in thread pool to avoid blocking the event loop
+    response = await asyncio.to_thread(
+        llm._call_llm_with_retry,
+        system_prompt, user_prompt, temperature=0.5, max_tokens=300,
     )
 
     if not response:
